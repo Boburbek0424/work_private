@@ -27,7 +27,7 @@ from utils.google_sheets import load_public_google_sheet
 
 DEFAULT_SHEET_URL = (
     "https://docs.google.com/spreadsheets/d/"
-    "1KD7PwPWlHmzCpDKYDvX_wfLdJG3i1B2xNfq9EcgOW40/edit?usp=sharing"
+    ""
 )
 
 

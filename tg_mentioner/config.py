@@ -18,11 +18,10 @@ INCLUDE_BOTS: bool = os.getenv("INCLUDE_BOTS", "false").lower() in ("true", "1",
 # Telegram message character limit
 MESSAGE_LIMIT: int = 4096
 
-# Maximum number of mentions per batch message
-BATCH_SIZE: int = 50
-
 # Delay in seconds between batch messages to avoid spam limits
 ANTI_SPAM_DELAY: float = float(os.getenv("ANTI_SPAM_DELAY", "1.5"))
 
-# Database file path
-DATABASE_PATH: str = os.getenv("DATABASE_PATH", str(Path(__file__).resolve().parent / "bot_data.db"))
+# Database file path - defaults to ./data/ subdirectory to keep the database
+# separate from source code and safe from accidental git clean or re-clone
+_default_db_path = str(Path(__file__).resolve().parent / "data" / "bot_data.db")
+DATABASE_PATH: str = os.getenv("DATABASE_PATH", _default_db_path)

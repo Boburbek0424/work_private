@@ -6,7 +6,7 @@ from telegram import Update
 from telegram.ext import ContextTypes
 
 from config import INCLUDE_BOTS
-from database import add_user
+from database import DatabaseError, add_user
 
 logger = logging.getLogger(__name__)
 
@@ -16,6 +16,7 @@ async def track_user(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
 
     This handler runs on every message and updates the user's info in the database.
     Bots are ignored unless INCLUDE_BOTS is set to True.
+    Database write failures are logged but do not interrupt message processing.
     """
     # Get message from either regular message or edited message
     message = update.effective_message
@@ -48,5 +49,7 @@ async def track_user(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
             is_bot=user.is_bot,
         )
         logger.debug(f"Tracked user {user.id} ({user.username or user.first_name}) in chat {chat.id}")
-    except Exception as e:
-        logger.error(f"Error tracking user {user.id} in chat {chat.id}: {e}")
+    except DatabaseError:
+        # Database errors are already logged by add_user; swallow here to avoid
+        # disrupting the user's normal messaging experience.
+        pass

@@ -1,19 +1,25 @@
 """Command handlers for the Telegram mentioner bot."""
 
 import asyncio
+import html
 import logging
 
 from telegram import Update
 from telegram.ext import ContextTypes
 
 from config import ANTI_SPAM_DELAY, INCLUDE_BOTS, MESSAGE_LIMIT
-from database import get_user_count, get_users, clear_users
+from database import DatabaseError, get_user_count, get_users, clear_users
 
 logger = logging.getLogger(__name__)
 
 
 async def is_admin(update: Update, context: ContextTypes.DEFAULT_TYPE) -> bool:
-    """Check if the user who sent the command is a group admin or creator."""
+    """Check if the user who sent the command is a group admin or creator.
+
+    Returns True if the user is an admin, False if not. If the check fails
+    due to a transient error (network issue, rate limit), informs the user
+    and returns False.
+    """
     chat = update.effective_chat
     user = update.effective_user
 
@@ -25,17 +31,25 @@ async def is_admin(update: Update, context: ContextTypes.DEFAULT_TYPE) -> bool:
         return member.status in ("administrator", "creator")
     except Exception as e:
         logger.error(f"Failed to check admin status: {e}")
+        await update.message.reply_text(
+            "Could not verify admin status due to a temporary error. Please try again in a moment."
+        )
         return False
 
 
 def format_mention(user: dict) -> str:
-    """Format a user mention. Use @username if available, otherwise use tg://user link."""
+    """Format a user mention. Use @username if available, otherwise use tg://user link.
+
+    Display names are HTML-escaped to prevent injection of malformed HTML
+    that would cause Telegram's parser to reject the message.
+    """
     if user["username"]:
         return f"@{user['username']}"
     else:
         display_name = user["first_name"] or "User"
         if user["last_name"]:
             display_name += f" {user['last_name']}"
+        display_name = html.escape(display_name)
         return f'<a href="tg://user?id={user["user_id"]}">{display_name}</a>'
 
 
@@ -63,11 +77,17 @@ def split_into_batches(mentions: list[str], limit: int = MESSAGE_LIMIT) -> list[
 async def tagall_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Handle /tagall command - mention all stored users (admin-only)."""
     if not await is_admin(update, context):
-        await update.message.reply_text("This command is restricted to group admins only.")
         return
 
     chat_id = update.effective_chat.id
-    users = await get_users(chat_id)
+
+    try:
+        users = await get_users(chat_id)
+    except DatabaseError:
+        await update.message.reply_text(
+            "Could not retrieve user list due to a database error. Please try again later."
+        )
+        return
 
     if not users:
         await update.message.reply_text(
@@ -103,20 +123,43 @@ async def tagall_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
 
 
 async def count_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Handle /count command - show number of tracked users."""
+    """Handle /count command - show number of tracked users.
+
+    Applies the same filters as /tagall (bot exclusion, self exclusion)
+    so the reported count matches what /tagall would actually mention.
+    """
     chat_id = update.effective_chat.id
-    count = await get_user_count(chat_id)
-    await update.message.reply_text(f"Currently tracking {count} user(s) in this chat.")
+
+    try:
+        count = await get_user_count(
+            chat_id,
+            exclude_bots=not INCLUDE_BOTS,
+            exclude_user_id=context.bot.id,
+        )
+    except DatabaseError:
+        await update.message.reply_text(
+            "Could not retrieve user count due to a database error. Please try again later."
+        )
+        return
+
+    await update.message.reply_text(f"Currently tracking {count} mentionable user(s) in this chat.")
 
 
 async def clear_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Handle /clear command - clear stored users (admin-only)."""
     if not await is_admin(update, context):
-        await update.message.reply_text("This command is restricted to group admins only.")
         return
 
     chat_id = update.effective_chat.id
-    deleted = await clear_users(chat_id)
+
+    try:
+        deleted = await clear_users(chat_id)
+    except DatabaseError:
+        await update.message.reply_text(
+            "Could not clear user list due to a database error. Please try again later."
+        )
+        return
+
     await update.message.reply_text(f"Cleared {deleted} user(s) from the tracking list.")
 
 

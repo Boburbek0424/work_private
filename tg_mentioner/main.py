@@ -2,9 +2,11 @@
 
 import asyncio
 import logging
+import os
 import sys
 
-from database import init_db
+from config import DATABASE_PATH
+from database import close_connection, init_db
 from bot import create_application
 
 
@@ -26,6 +28,11 @@ async def main() -> None:
     """Initialize the database and start the bot."""
     setup_logging()
     logger = logging.getLogger(__name__)
+
+    # Ensure the database directory exists
+    db_dir = os.path.dirname(DATABASE_PATH)
+    if db_dir:
+        os.makedirs(db_dir, exist_ok=True)
 
     logger.info("Initializing database...")
     await init_db()
@@ -50,6 +57,7 @@ async def main() -> None:
         await application.updater.stop()
         await application.stop()
         await application.shutdown()
+        await close_connection()
 
 
 if __name__ == "__main__":

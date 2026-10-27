@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>VELOX Virtual Store</title>
+  <meta name="description" content="Walk a 3D sportswear store in your browser: browse the racks, spin products 360° and check out." />
+  <meta name="theme-color" content="#efeeea" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23111'/%3E%3Cg transform='translate(3 13) scale(1)' fill='%23d4f52a'%3E%3Cpath d='M0 6 L3 0 L13 0 L10 6 Z'/%3E%3Cpath d='M12 6 L15 0 L21 0 L18 6 Z' opacity='.75'/%3E%3Cpath d='M20 6 L23 0 L26 0 L23 6 Z' opacity='.5'/%3E%3C/g%3E%3C/svg%3E" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:ital,wght@1,800;1,900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body data-view="store">
+  <!-- intro -->
+  <div id="intro" aria-hidden="true">
+    <div class="intro-half top"></div>
+    <div class="intro-half bottom"></div>
+    <div class="intro-in">
+      <div class="intro-mark"><i></i><i></i><i></i></div>
+      <div class="intro-word"><span>V</span><span>E</span><span>L</span><span>O</span><span>X</span></div>
+      <div class="intro-sub">Virtual Store</div>
+      <div class="intro-bar"><i></i></div>
+    </div>
+  </div>
+
+  <!-- the 3D room -->
+  <main class="room" aria-label="3D store. Drag to look around, click a wall to enter a section.">
+    <div class="stage"><div class="world"></div></div>
+    <p class="room-hint">Drag to look around · click a wall to step in</p>
+  </main>
+
+  <!-- overlay views -->
+  <section class="view view-sec" data-view="sec-clothing" aria-label="Clothing"></section>
+  <section class="view view-sec" data-view="sec-caps" aria-label="Caps"></section>
+  <section class="view view-sec" data-view="sec-bags" aria-label="Bags"></section>
+  <section class="view view-sec" data-view="sec-shoes" aria-label="Shoes"></section>
+  <section class="view view-product" data-view="product" aria-label="Product"></section>
+  <section class="view view-auth" data-view="auth" aria-label="Account"></section>
+
+  <!-- top bar -->
+  <header class="topbar">
+    <div class="tb-left">
+      <button class="round-btn back-btn" aria-label="Back"><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M11 6l-6 6 6 6"/></svg></button>
+    </div>
+    <a href="#/" class="brand" aria-label="VELOX home">
+      <span class="wordmark"><span>VELOX</span><svg class="vx-mark" viewBox="0 0 26 6" aria-hidden="true"><g fill="currentColor"><path d="M0 6 L3 0 L13 0 L10 6 Z"/><path d="M12 6 L15 0 L21 0 L18 6 Z" opacity=".75"/><path d="M20 6 L23 0 L26 0 L23 6 Z" opacity=".5"/></g></svg></span>
+      <small>Virtual Store</small>
+    </a>
+    <div class="tb-right">
+      <div class="acct">
+        <button class="round-btn acct-btn" aria-label="Account">
+          <svg class="ico" viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>
+          <span class="initials"></span>
+        </button>
+        <div class="acct-menu"><p class="who"></p><button class="out">Sign out</button></div>
+      </div>
+      <button class="round-btn cart-btn" aria-label="Open bag">
+        <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 8h14l-1.2 12.2a1 1 0 0 1-1 .8H7.2a1 1 0 0 1-1-.8z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg>
+        <span class="badge">0</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- bottom dock -->
+  <nav class="dock" aria-label="Store sections">
+    <span class="dock-ind"></span>
+    <button data-go="store">Store</button>
+    <button data-go="clothing">Clothing</button>
+    <button data-go="caps">Caps</button>
+    <button data-go="bags">Bags</button>
+    <button data-go="shoes">Shoes</button>
+    <button class="info-btn" aria-label="About this store">i</button>
+  </nav>
+
+  <div class="toast" role="status" aria-live="polite"></div>
+
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="about-t">
+    <div class="modal-card">
+      <button class="round-btn" data-x aria-label="Close"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+      <div class="wordmark wordmark--lg"><span>VELOX</span><svg class="vx-mark" viewBox="0 0 26 6" aria-hidden="true"><g fill="currentColor"><path d="M0 6 L3 0 L13 0 L10 6 Z"/><path d="M12 6 L15 0 L21 0 L18 6 Z" opacity=".75"/><path d="M20 6 L23 0 L26 0 L23 6 Z" opacity=".5"/></g></svg></div>
+      <h3 id="about-t">Welcome to the virtual store</h3>
+      <p>Walk the room, step up to a wall, browse the rail and spin anything a full 360°.</p>
+      <ul class="keys">
+        <li><kbd>Drag</kbd> look around the store / turn a product</li>
+        <li><kbd>←</kbd><kbd>→</kbd> turn to the next wall · browse items</li>
+        <li><kbd>Enter</kbd> open the centered item</li>
+        <li><kbd>Esc</kbd> step back</li>
+      </ul>
+      <p class="fine">A front-end demo: every product is drawn in code, no payments are taken, and accounts are stored only in this browser.</p>
+    </div>
+  </div>
+
+  <script src="js/art.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/room.js"></script>
+  <script src="js/rack.js"></script>
+  <script src="js/viewer.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/cart.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
